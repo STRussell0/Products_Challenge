@@ -1,0 +1,211 @@
+<?php
+
+/*
+Create a class called products
+    Have properties 'title', 'description', 'price', 'weight'
+    Create methods to get and set the title, description and price
+    Create a method that converts lbs to oz, and sets the weight.
+Create another Class that inherits / extends the product
+    In the class set a method that sets the shipping price based upon the item's weight. The cost of shipping is $0.7 per oz
+    Have a method that calculates tax which is (10.25% of the price)
+    Have a method that calculates the final price
+    On the page, display a shopping total that has at least 3 products, show the description, and quantity you are ordering.
+    Display the cost per item, total cost for items, total in taxes, and final price.
+    Have one of the items convert the lb weight to oz
+*/
+
+class Product {
+
+    public $title;
+    public $description;
+    public $price;
+    public $weight;
+    // public $ounces;
+
+    // public function __construct($title, $description, $price, $weight, $sku) {
+    //     $this->set_title( $title );
+    //     $this->set_description( $description );
+    //     $this->set_price( $price );
+    //     $this->set_weight( $weight );
+    //     $this->set_title( $title );        
+    //     // $this->ounces = $this->lbs_to_oz();
+    // }
+
+    public function __construct( $product = array() ) {
+
+        if( isset( $product['title'] ) ) $this->set_title( $product['title'] );
+        if( isset( $product['description'] ) ) $this->set_description( $product['description'] );
+        if( isset( $product['price'] ) ) $this->set_price( $product['price'] );
+        if( isset( $product['weight'] ) ) $this->set_weight( $product['weight'] );
+
+    }  
+
+    public function get_title() {
+        return $this->title;
+    }
+
+    public function get_description() {
+        return $this->description;
+    }
+
+    public function get_price() {
+        return $this->price;
+    }
+
+    public function set_title($title) {
+        return $this->title = $title;        
+    }
+
+    public function set_description($description) {
+        return $this->description = $description;
+    }
+
+    public function set_price($price) {
+        return $this->price = $price;
+    }
+
+    public function set_weight($array) {
+
+        if( !isset( $array['weight'] ) ) return false;
+
+        // Convert to Lbs to OZ
+        if( $array['unit'] == 'lbs' ) {
+            
+            $array['weight'] = $array['weight'] * 16;
+
+        } 
+
+        return  $this->weight = array( 'weight' => $array['weight'], 'unit' => 'oz' );
+
+    }
+
+    public function lbs_to_oz() {
+        return $this->weight * 16;
+    }
+
+};
+
+class CartItem extends Product {
+
+    public $shipping_cost;
+    public $tax;
+    public $final_price;
+    public $units = 1;
+
+    public function __construct( $product = array() ) {
+
+        if( isset( $product['title'] ) ) $this->set_title( $product['title'] );
+        if( isset( $product['description'] ) ) $this->set_description( $product['description'] );
+        if( isset( $product['price'] ) ) $this->set_price( $product['price'] );
+        if( isset( $product['weight'] ) ) $this->set_weight( $product['weight'] );
+        if( isset( $product['units'] ) ) $this->units = $product['units'] ;
+
+        $this->set_shipping_price();
+        $this->set_tax();
+        $this->set_final_price();
+
+    }  
+
+    public function set_shipping_price( ) {
+        
+        if ( $this->weight['unit'] !== 'oz' ) {
+            $this->set_weight( $this->weight );
+        }
+
+        $this->shipping_cost = ( $this->weight['weight'] * 0.07 ) * $this->units;
+
+        return $this->shipping_cost;
+
+    }
+
+    public function set_tax() {
+
+        $this->tax = ( $this->price * $this->units ) * .1025 ;
+
+        return $this->tax;
+
+    }
+
+    public function set_final_price() {
+
+        $this->final_price = $this->set_tax() + $this->set_shipping_price() + ( $this->price * $this->units );
+
+        return $this->final_price;
+
+    }
+}
+
+$products = array();
+
+$params = array(
+    'title' => 'DDR Machine',
+    'description' => 'Arcade cabinet',
+    'price' => 1500,
+    'weight' => array(
+        'unit' => 'lbs',
+        'weight' => 500,
+    ),
+    'units' => 3,
+);
+$products[] = new CartItem( $params );
+
+$params = array(
+    'title' => 'Test 2',
+    'description' => 'Item',
+    'price' => 1000,
+    'weight' => array(
+        'unit' => 'lbs',
+        'weight' => 10,
+    ),
+    'units' => 1,
+);
+$products[] = new CartItem( $params );
+
+
+$params = array(
+    'title' => 'Test 3',
+    'description' => 'Item 2',
+    'price' => 1,
+    'weight' => array(
+        'unit' => 'oz',
+        'weight' => 1,
+    ),
+    'units' => 99,
+);
+$products[] = new CartItem( $params );
+
+$params = array(
+    'title' => 'Test 3',
+    'description' => 'Item 2',
+    'price' => 1,
+    'weight' => array(
+        'unit' => 'oz',
+        'weight' => 1,
+    ),
+    'units' => 99,
+);
+$products[] = new CartItem( $params );
+
+
+echo "<pre>";
+
+$grand_total = 0;
+$grand_total_tax = 0;
+$grand_total_shipping = 0;
+
+foreach ($products as $product) {
+    
+    echo "<p>Qty: " . $product->units . "</p>";
+    echo "<p>Item Shipping: " . $product->shipping_cost . "</p>";
+    echo "<p>Item Tax: " . $product->tax . "</p>";
+    echo "<p>Item Total: " . $product->final_price . "</p>";
+
+    $grand_total = $grand_total + $product->final_price;
+    $grand_total_tax = $grand_total_tax + $product->tax;
+    $grand_total_shipping = $grand_total_shipping + $product->shipping_cost;
+
+}
+
+echo "<p>Cart Grand Tax: " . $grand_total_tax . "</p>";
+echo "<p>Cart Grand Shipping: " . $grand_total_shipping . "</p>";
+echo "<p>Cart Grand Total: " . $grand_total . "</p>";
