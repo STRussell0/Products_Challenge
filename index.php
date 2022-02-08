@@ -1,204 +1,112 @@
 <?php
 
 /*
-    New changes:
-
-    1. Must use an array in the construct function parameter
-
-    public function __construct( $product = array() ) {
-
-        if( isset( $product['title'] ) ) $this->set_title( $product['title'] );
-        if( isset( $product['description'] ) ) $this->set_description( $product['description'] );
-        if( isset( $product['price'] ) ) $this->set_price( $product['price'] );
-        if( isset( $product['weight'] ) ) $this->set_weight( $product['weight'] );
-
-    }
-
-    2. Use a foreach loop to display the results:
-
-    $grand_total = 0;
-    $grand_total_tax = 0;
-    $grand_total_shipping = 0;
-
-    foreach ($products as $product) {
-    
-    echo "<p>Qty: " . $product->units . "</p>";
-    echo "<p>Item Shipping: " . $product->shipping_cost . "</p>";
-    echo "<p>Item Tax: " . $product->tax . "</p>";
-    echo "<p>Item Total: " . $product->final_price . "</p>";
-
-    $grand_total = $grand_total + $product->final_price;
-    $grand_total_tax = $grand_total_tax + $product->tax;
-    $grand_total_shipping = $grand_total_shipping + $product->shipping_cost;
-
-}
-
-    Bonus: Weight set function
-
-    public function set_weight($array) {
-
-        if( !isset( $array['weight'] ) ) return false;
-
-        // Convert to Lbs to OZ
-        if( $array['unit'] == 'lbs' ) {
-            
-            $array['weight'] = $array['weight'] * 16;
-
-        } 
-
-        return  $this->weight = array( 'weight' => $array['weight'], 'unit' => 'oz' );
-
-    }
-
-    Create a class called products
+Create a class called products
     Have properties ‘title’, ‘description’, ‘price’, ‘weight’
     Create methods to get and set the title, description and price
     Create a method that converts lbs to oz, and sets the weight.
-
 Create another Class that inherits / extends the product
     In the class set a method that sets the shipping price based upon the item’s weight. The cost of shipping is $0.7 per oz
     Have a method that calculates tax which is (10.25% of the price)
     Have a method that calculates the final price
-
     On the page, display a shopping total that has at least 3 products, show the description, and quantity you are ordering.
     Display the cost per item, total cost for items, total in taxes, and final price.
     Have one of the items convert the lb weight to oz
-
 */
 
-class Products {
-
+class Product {
     public $title;
     public $description;
     public $price;
     public $weight;
 
-    public function __construct( $item = array() ) {
-        if( isset( $item['title'] ) ) $this->set_title( $item['title'] );
-        if( isset( $item['description'] ) ) $this->set_description( $item['description'] );
-        if( isset( $item['price'] ) ) $this->set_price( $item['price'] );
-        if( isset( $item['weight'] ) ) $this->set_weight( $item['weight'] );
+    public function __construct ( $products = array() ) {
+        if ( isset( $products['title'] ) ) $this->set_title( $products['title'] );
+        if ( isset( $products['description'] ) ) $this->set_description( $products['description'] );
+        if ( isset( $products['price'] ) ) $this->set_price( $products['price'] );
+        if ( isset( $products['weight'] ) ) $this->set_weight( $products['weight'] );
     }
 
-    public function set_title($title) {return $this->title = $title;}
-    public function set_description($description) {return $this->description = $description;}
-    public function set_price($price) {return $this->price = $price;}
-
-    public function set_weight($items) {
-
-        // if( !isset( $items['weight'] ) ) return false;
-
-        // Convert to Lbs to OZ
-        if( $items['unit'] == 'lbs' ) {
-            
-            $items['weight'] = $items['weight'] * 16;
-
-        } 
-
-        return  $this->weight = array( 'weight' => $items['weight'], 'unit' => 'oz' );
-            // return $this->weight = $items['weight'] * 16;
-
+    public function set_title($title) {
+        return $this->title = $title;
     }
-    
 
+    public function set_description($description) {
+        return $this->description = $description;
+    }
+
+    public function set_price($price) {
+        return $this->price = $price;
+    }
+
+    public function set_weight($items) { // In this scenario, the only weight that can be entered into an array is lbs, so it will always convert to oz.
+        return $this->weight = $items * 16;
+    }
 }
 
-class Sales extends Products {
-
-    public $shipping_price;
+class CartItem extends Product {
+    public $shipping_cost;
     public $tax;
     public $final_price;
     public $units = 1;
 
-    public function __construct( $item = array() ) {
-        if( isset( $item['title'] ) ) $this->set_title( $item['title'] );
-        if( isset( $item['description'] ) ) $this->set_description( $item['description'] );
-        if( isset( $item['price'] ) ) $this->set_price( $item['price'] );
-        if( isset( $item['weight'] ) ) $this->set_weight( $item['weight'] );
-        if( isset( $item['units'] ) ) $this->units = $item['units'];
+    public function __construct ( $products = array() ) {
+        if ( isset( $products['title'] ) ) $this->set_title( $products['title'] );
+        if ( isset( $products['description'] ) ) $this->set_description( $products['description'] );
+        if ( isset( $products['price'] ) ) $this->set_price( $products['price'] );
+        if ( isset( $products['weight'] ) ) $this->set_weight( $products['weight'] );
+        if ( isset( $products['units'] ) ) $this->units = $products['units'];
+        
 
-        $this->set_shipping_price();
+        $this->set_shipping_cost(); // calling the function in the construct will run it when you create a new instance of the CartItem class.
         $this->set_tax();
         $this->set_final_price();
     }
 
-    public function set_shipping_price() {
-        $this->shipping_price = ($this->weight['weight'] * .7) * $this->units;
-        return $this->shipping_price;
+    public function set_shipping_cost() {
+        return $this->shipping_cost = ($this->weight * .7) * $this->units;
     }
 
     public function set_tax() {
-        $this->tax = ($this->price * .1025) * $this->units;
-        return $this->tax;
+        return $this->tax = ($this->price * .1025) * $this->units;
     }
 
     public function set_final_price() {
-        $this->final_price = $this->set_shipping_price() + $this->set_tax() + ($this->price * $this->units);
-        return $this->final_price;
+        return $this->final_price = $this->set_shipping_cost() + $this->set_tax() + ($this->price * $this->units);
     }
-
 }
 
-$items = []; // Made $items into an array to easily loop through them in our future foreach
+$products1 = [];
 
-
-$item_params1 = array(
-    'title' => 'Hotdog',
-    'description' => 'Food',
-    'price' => 2,
-    'weight' => array(
-        'weight' => 1,
-        'unit' => 'lbs'
-    )
+$products_parameters_1 = array(
+    'title' => 'Seamoth',
+    'description' => 'Underwater Vehicle',
+    'price' => 1000,
+    'weight' => 200,
+    'units' => 3
 );
-$items['Hotdog'] = new Sales($item_params1); // This will add a new array.
 
-$item_params2 = array(
-    'title' => 'Hamburger',
-    'description' => 'Food',
-    'price' => 5,
-    'weight' => array(
-        'weight' => 2,
-        'unit' => 'lbs'
-    )
+$products1[] = new CartItem($products_parameters_1);
+
+$products_parameters_2 = array(
+    'title' => 'Prawn Suit',
+    'description' => 'Underwater Vehicle',
+    'price' => 2500,
+    'weight' => 400,
+    'units' => 2
 );
-$items['Hamburger'] = new Sales($item_params2);
 
-$item_params3 = array(
-    'title' => 'Grilled Cheese',
-    'description' => 'Food',
-    'price' => 8,
-    'units' => 2,
-    'weight' => array(
-        'weight' => 3,
-        'unit' => 'lbs'
-    )
+$products1[] = new CartItem($products_parameters_2);
+
+$products_parameters_3 = array(
+    'title' => 'Cyclops',
+    'description' => 'Submarine',
+    'price' => 7500,
+    'weight' => 1000,
+    'units' => 1
 );
-$items['Grilled Cheese'] = new Sales($item_params3);
 
-$grand_total_shipping;
-$grand_total_tax;
-$grand_total;
+$products1[] = new CartItem($products_parameters_3);
 
-
-foreach ($items as $item) {
-    echo '<p>Title: ' . $item->title . '</p>';
-    echo '<p>Description: ' . $item->description . '</p>';
-    echo '<p>Quantity: ' . $item->units . '</p>';
-    echo '<p>Weight: ' . $item->weight['weight'] . '</p>';
-    echo '<br>';
-    echo '<p>Price: $' . $item->price . '</p>';
-    echo '<p>Shipping Cost: $' . $item->shipping_price . '</p>';
-    echo '<p>Tax: $' . $item->tax . '</p>';
-    echo '<p>Total: <b>$' . $item->final_price . '</b></p>';
-
-    echo '<br>';
-
-    $grand_total_shipping += $item->shipping_price;
-    $grand_total_tax += $item->tax;
-    $grand_total_price += $item->final_price;
-}
-
-echo '<p>Total Shipping: $' . $grand_total_shipping . '</p>';
-echo '<p>Total Tax: $' . $grand_total_tax . '</p>';
-echo '<p>Grand Total: $' . $grand_total_price . '</p>';
+echo '<pre>';
+print_r($products1);
